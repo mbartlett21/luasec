@@ -103,6 +103,7 @@ local find_system_ca, download_system_ca_win do
       "/etc/pki/tls/cacert.pem",                            -- OpenELEC
       "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",  -- CentOS / RHEL 7
       "/etc/ssl/cert.pem",                                  -- OpenBSD / Alpine / macOS
+      "/usr/local/etc/ssh/ca-bundle.crt",                   -- tiny core linux
    }
 
    function find_system_ca()
