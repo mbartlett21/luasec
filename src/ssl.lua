@@ -73,11 +73,28 @@ local system_ca
 --
 -- Probes for a usable system CA value. Does not touch the cache.
 --
-local find_system_ca do
+-- download_system_ca_win attempts to download to a default location on Windows
+local find_system_ca, download_system_ca_win do
    local is_windows = package.config:sub(1, 1) == "\\"
+
+   if is_windows then
+      download_system_ca_win = function()
+         local localcafilepath = os.getenv("APPDATA")..[[\luasec-ca-bundle.crt]]
+         -- any modern windows (17063+) has curl.exe in the path
+         local worked = os.execute('curl.exe -o "'..localcafilepath..'" "https://curl.se/ca/cacert.pem"')
+         if worked then
+            return localcafilepath
+         else
+            -- delete any sort of partial download
+            os.remove(localcafilepath)
+            return nil, "cacert.pem download failed"
+         end
+      end
+   end
 
    -- Known CA bundle locations to probe, in order.
    local ca_bundle_paths = is_windows and {
+      os.getenv("APPDATA")..[[\luasec-ca-bundle.crt]],      -- From download_system_ca_win
       [[C:\Program Files\Git\usr\ssl\cert.pem]], -- Git for Windows
    } or {
       "/etc/ssl/certs/ca-certificates.crt",                 -- Debian / Ubuntu / Gentoo
@@ -397,6 +414,7 @@ local _M = {
   find_system_ca  = find_system_ca,
   set_system_ca   = set_system_ca,
   get_system_ca   = get_system_ca,
+  download_system_ca_win  = download_system_ca_win,
 }
 
 -- Warm the system CA cache at load time, rather than on first connection.
