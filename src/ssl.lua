@@ -144,7 +144,8 @@ local function get_system_ca()
       if not cafile then
          return nil, err
       end
-      set_system_ca(cafile)
+      -- if the search fails, don't keep trying
+      set_system_ca(cafile or false)
    end
    return system_ca
 end
